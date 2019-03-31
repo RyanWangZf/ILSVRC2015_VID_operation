@@ -11,10 +11,10 @@ Place it under the root as:
 
 >|- root
 >
->​	|- ILSVRC2015
+>    |- ILSVRC2015
 >
->​		|- Annotations
+>        |- Annotations
 >
->​		|- Data
+>        |- Data
 >
->​		|- ImageSets (optional)
+>        |- ImageSets (optional)
