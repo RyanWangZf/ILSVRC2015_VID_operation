@@ -33,11 +33,13 @@ def main():
     meta_data = {x[0]:x[1] for x in meta_data}
     
     # do multiprocessing here
-    # for video_name in video_names:
-        # worker(meta_data,video_name)
-    worker(meta_data,video_names[0])
+    for i,video_name in enumerate(video_names):
+        print(i)
+        worker(meta_data,video_name)
+        if i == 10:
+            break
 
-    pdb.set_trace()
+    # pdb.set_trace()
 
 def worker(meta_data,video_name):
     image_names = glob(video_name + "/*")
@@ -61,12 +63,6 @@ def worker(meta_data,video_name):
                 tfrecord_writer.write(example.SerializeToString())
                 # print("[{}]{}".format(video,image_name))
     
-    # debug on tfrecord
-    decode_from_tfrecords(tf_filename)
-    pdb.set_trace()
-
-
-
     # debug on video
     # show_anim(image_names)    
     # pdb.set_trace()
@@ -187,6 +183,10 @@ def add_box_img(img,boxes,color=(0,255,0)):
             (int(point_2[0]),int(point_2[1])),color,2)
     
     return img
+
+# ----------------------------------------
+# TO DO: dataset factory
+# ----------------------------------------
 
 def decode_from_tfrecords(tf_filename):
     filename_queue = tf.train.string_input_producer([tf_filename],
