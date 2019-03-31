@@ -10,7 +10,12 @@ Download the raw [**ILSVRC2015**](http://bvisionweb1.cs.unc.edu/ilsvrc2015/ILSVR
 Place it under the root as:
 
 >|- root
+>  
 >    |- ILSVRC2015
+>  
 >        |- Annotations
+>  
 >        |- Data
+>  
 >        |- ImageSets (optional)
+
