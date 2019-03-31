@@ -102,3 +102,13 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# saved datasets
+tf_records
+VID_15
+ILSVRC2015
+
+
+
+
+
