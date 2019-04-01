@@ -31,13 +31,20 @@ def main(_):
         print(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime()))
         print("Training epoch {}/{}".format(i+1,FLAGS.num_epoch))
         for tf_filename in tqdm(tf_filenames):
-            images,bboxes = \
-                dataset_factory.decode_from_tfrecord(
-                    tf_filename,preprocessing_fn=None)
-            pdb.set_trace()
-        pass
-    pdb.set_trace()
+            # read tensor from dataset
+            dataset = dataset_factory.get_dataset(tf_filename)
+            image,bbox,_ = dataset_factory.data_provider(dataset)
+            
+            # TODO: receive tensor, return tensor.
+            # image,bbox = preprocessing(image,bbox)
 
+            # TODO: run tensor to get a training pair (exemplar,instance)
+            # exemplar_img,instance_img,regression_target,conf_target = \
+            #       dataset_factory.get_pair(image,bbox)
+
+            pdb.set_trace()
+    
+    return
 
 if __name__ == "__main__":
     tf.app.run()

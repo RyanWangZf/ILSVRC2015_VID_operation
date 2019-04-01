@@ -10,20 +10,19 @@ import pdb
 
 slim = tf.contrib.slim
 
+# setups for debug
 raw_data_dir = "ILSVRC2015"
 data_dir = "VID_15"
 tf_record_dir = "tf_records"
-
-# assert `train` or `val` or `test`
 data_split_name = "train"
-
 splits_to_sizes = {
-    "train":1,
-    "val":1,
+    "train":0,
+    "val":0,
     "test":0}
 
-batch_size = 8
-
+# -------------------------
+# Dataloader utils
+# -------------------------
 def get_tf_filenames(tfrecord_dir,split_name,shuffle=False):
     assert split_name in ["train","val","test"]
     tf_filenames = glob(os.path.join(tf_record_dir,"*"))
@@ -34,6 +33,10 @@ def get_tf_filenames(tfrecord_dir,split_name,shuffle=False):
 
 def get_dataset(tf_filename):
     """Get dataset tensor given tf_filename.
+    Args:
+        tf_filename: Path of tfrecord file to read.
+    Returns:
+        dataset: A `slim.Dataset`.
     """
     reader = tf.TFRecordReader
     # Features in ILSVRC 2015 tfrecords
@@ -66,13 +69,27 @@ def get_dataset(tf_filename):
         data_sources=tf_filename,
         reader=reader,
         decoder=decoder,
-        num_samples=splits_to_sizes[data_split_name], #TODO
+        num_samples=0, # has nothing to do with reading actually
         items_to_descriptions=items_to_descriptions)
     
     return dataset
 
-    return
-
+def data_provider(dataset):
+    """Given a slim.Dataset returns provided data tensor.
+    Args:
+        dataset: slim.Dataset.
+    Returns:
+        image,bbox,image_name: tf.tensor object for further preprocessing.
+    """
+    provider = slim.dataset_data_provider.DatasetDataProvider(
+        dataset,
+        num_readers=4,
+        shuffle=False,
+        num_epochs=1,
+        common_queue_capacity=256,
+        common_queue_min= 128)
+    [image,bbox,image_name] = provider.get(["image","object/bbox","image_name"])
+    return image,bbox,image_name
 
 # -------------------------
 # Debug utils
@@ -86,12 +103,16 @@ def debug_tfrecord():
         tf_filenames = [f for f in tf_filenames if "val" in f]
               
     # debug on tfrecord
-    images = decode_from_tfrecord(tf_filenames[0])
+    images,_ = decode_from_tfrecord(tf_filenames[0])
     show_anim(images)
+    return
 
 def debug_slim_dataset():
-    dataset = slim_get_dataset(tf_record_dir,data_split_name)
-    image,bbox,image_name = slim_data_provider(dataset)
+    tf_filenames = get_tf_filenames(tf_record_dir,data_split_name)
+    dataset = get_dataset(tf_filenames[0])
+    image,bbox,image_name = data_provider(dataset)
+
+    images,bboxes = [],[]
     with tf.Session() as sess:
         init_op = [tf.global_variables_initializer(),
             tf.local_variables_initializer()]
@@ -100,8 +121,10 @@ def debug_slim_dataset():
         threads = tf.train.start_queue_runners(sess,coord)
         i = 0
         try:
-            while not coord.should_stop() and i < 1:
-                images,bboxes,name = sess.run([image,bbox,image_name])
+            while not coord.should_stop():
+                img,box,name = sess.run([image,bbox,image_name])
+                images.append(img)
+                bboxes.append(box)
                 i+= 1
                 print("process ",i)
 
@@ -110,13 +133,13 @@ def debug_slim_dataset():
         finally:
             coord.request_stop()
         coord.join(threads)
-    pdb.set_trace()
-    pass
+    show_anim(images)
+    return
 
 def slim_get_dataset(dataset_dir,data_split_name,
     file_pattern="ILSVRC2015_%s_*.tfrecord",
     reader=None):
-    """Given a dataset dir and split name returns a Dataset.
+    """Given a dataset dir and split name returns a Dataset, an example.
     Args:
         dataset_dir: String, the directory where the dataset files are stored.
         data_split_name: A train/test split name.
@@ -171,17 +194,6 @@ def slim_get_dataset(dataset_dir,data_split_name,
     
     return dataset
     
-def slim_data_provider(dataset):
-    """Given a slim.Dataset returns provided data tensor.
-    """
-    provider = slim.dataset_data_provider.DatasetDataProvider(
-        dataset,
-        num_readers=4,
-        common_queue_capacity=20 * batch_size,
-        common_queue_min= 10 * batch_size)
-    [image,bbox,image_name] = provider.get(["image","object/bbox","image_name"])
-    return image,bbox,image_name
-
 def decode_from_tfrecord(tf_filename):
     """Load tfrecord files via their file path.
     Args:
