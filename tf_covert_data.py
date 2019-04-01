@@ -184,63 +184,6 @@ def add_box_img(img,boxes,color=(0,255,0)):
     
     return img
 
-# ----------------------------------------
-# TO DO: dataset factory
-# ----------------------------------------
-
-def decode_from_tfrecords(tf_filename):
-    filename_queue = tf.train.string_input_producer([tf_filename],
-        num_epochs=None)
-    reader = tf.TFRecordReader()
-    _,serialized_example = reader.read(filename_queue)
-    features = tf.parse_single_example(serialized_example,
-        features={"image/encoded":tf.FixedLenFeature((),tf.string),
-            })
-    image = tf.decode_raw(features["image/encoded"],tf.uint8)
-    with tf.Session() as sess:
-        init_op = tf.global_variables_initializer()
-        sess.run(init_op)
-        coord = tf.train.Coordinator()
-
-        img = sess.run(image)
-
-    coord.request_stop()
-    pdb.set_trace()
-
-def load_tfrecord(tf_filename):
-    file_pattern = ""
-    keys_to_features = {
-        "image/encoded":tf.FixedLenFeature((),tf.string,default_value=""),
-        "image/format":tf.FixedLenFeature((),tf.string,default_value="jpeg"),
-        "image/object/bbox/xmin":tf.VarLenFeature(dtype=tf.float32),
-        "image/object/bbox/xmax":tf.VarLenFeature(dtype=tf.float32),
-        "image/object/bbox/ymin":tf.VarLenFeature(dtype=tf.float32),
-        "image/object/bbox/ymax":tf.VarLenFeature(dtype=tf.float32),
-        "image/image_name":tf.VarLenFeature(dtype=tf.string),
-        }
-
-    items_to_handlers = {
-        "image":slim.tfexample_decoder.Image("image/encoded","image/format"),
-        "object/bbox":slim.tfexample_decoder.BoundingBox(
-            ["xmin","xmax","ymin","ymax"],"image/object/bbox/"),
-        }
-    items_to_descriptions = {
-        "image":"A rgb image of fixed size",
-        "object/bbox":"A list of bounding boxes, one per each object",
-        }
-
-    decoder = slim.tfexample_decoder.TFExampleDecoder(
-        keys_to_features,items_to_handlers)
-
-    slim_dataset = slim.dataset.Dataset(
-        data_sources=tf_filename,
-        reader = tf.TFRecordReader,
-        decoder = decoder,
-        num_samples= 1,
-        items_to_descriptions=items_to_descriptions)
-
-    return slim_dataset
-
 if __name__ == "__main__":
     main()
 
