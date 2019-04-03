@@ -86,7 +86,7 @@ def process_image(image_name):
     xmax = int((321-1)/2 + gt_w/2)
     ymin = int((321-1)/2 - gt_h/2)
     ymax = int((321-1)/2 + gt_h/2)
-    bbox = [xmin,xmax,ymin,ymax]
+    bbox = [ymin,xmin,ymax,xmax]
 
     # bbox debug
     # img = misc.imread(image_name)
@@ -108,7 +108,7 @@ def convert_to_example(image_data,bbox,image_name):
         Example proto
     """
     assert len(bbox) == 4
-    xmin,xmax,ymin,ymax = bbox
+    ymin,xmin,ymax,xmax = bbox
 
     image_format = b"JPEG"
     example = tf.train.Example(features=tf.train.Features(feature={

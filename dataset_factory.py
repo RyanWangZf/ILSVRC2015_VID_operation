@@ -53,7 +53,7 @@ def get_dataset(tf_filename):
         "image":slim.tfexample_decoder.Image(
             image_key="image/encoded",format_key="image/format",channels=3),
         "object/bbox":slim.tfexample_decoder.BoundingBox(
-            ["xmin","xmax","ymin","ymax"],"image/object/bbox/"),
+            ["ymin","xmin","ymax","xmax"],"image/object/bbox/"),
         "image_name":slim.tfexample_decoder.Tensor("image/image_name"),
         }
     items_to_descriptions = {
@@ -173,7 +173,7 @@ def slim_get_dataset(dataset_dir,data_split_name,
         "image":slim.tfexample_decoder.Image(
             image_key="image/encoded",format_key="image/format",channels=3),
         "object/bbox":slim.tfexample_decoder.BoundingBox(
-            ["xmin","xmax","ymin","ymax"],"image/object/bbox/"),
+            ["ymin","xmin","ymax","xmax"],"image/object/bbox/"),
         "image_name":slim.tfexample_decoder.Tensor("image/image_name"),
         }
     items_to_descriptions = {
@@ -246,7 +246,7 @@ def decode_from_tfrecord(tf_filename):
             try:
                 while not coord.should_stop():
                     # print("images:",epoch)
-                    img,x1,x2,y1,y2 = sess.run([image,xmin,xmax,ymin,ymax])
+                    img,y1,x1,y2,x2 = sess.run([image,ymin,xmin,ymax,xmax])
                     bboxes.append((x1,x2,y1,y2))
                     images.append(img)
                     epoch += 1

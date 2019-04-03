@@ -33,6 +33,7 @@ def main(_):
         for tf_filename in tqdm(tf_filenames):
             # read tensor from dataset
             dataset = dataset_factory.get_dataset(tf_filename)
+            # bbox: [ymin,xmin,ymax,xmax]
             image,bbox,_ = dataset_factory.data_provider(dataset)
             
             # TODO: receive tensor, return tensor.
